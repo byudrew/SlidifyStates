@@ -1,0 +1,122 @@
+---
+title       : Comparisons of the 50 US States
+subtitle    : 
+author      : ABC
+job         : 
+framework   : io2012        # {io2012, html5slides, shower, dzslides, ...}
+highlighter : highlight.js  # {highlight.js, prettify, highlight}
+hitheme     : tomorrow      # 
+widgets     : [mathjax]     # {mathjax, quiz, bootstrap}
+mode        : selfcontained # {standalone, draft}
+knit        : slidify::knit2slides
+---
+
+## Data Description
+
+Data for this app comes from the state dataset in R. This dataset contains 50 rows
+with statistics from each state, which were gathered in the 1970s. The 8 variables are:
+
+* Population
+* Income (per capita)
+* Illiteracy (rate)
+* Life.Exp (life expectancy)
+* Murder (rate)
+* HS.Grad (percentage of high school graduates)
+* Frost (mean number of days below freezing in capital city)
+* Area
+
+---
+
+## Relationships Between Variables
+
+The pairs function provides a quick look at the relationships between the 8 variables.
+
+```{r, echo=FALSE, fig.height=7, fig.width=7, fig.align='center'}
+data(state)
+states <- data.frame(state.x77)
+pairs(states)
+```
+
+--- &twocol
+
+## App Description - Linear Regression
+
+*** =fullwidth
+This app allows a user to look more in depth at a particular pair of variables by plotting and summarizing the results of a linear regression.
+
+*** =left
+* Input variable: Illiteracy
+* Output variable: Life Expectancy
+```{r, echo=FALSE}
+mdl <- lm(Life.Exp ~ Illiteracy, data=states)
+```
+```{r}
+coef(mdl)
+```
+```{r}
+summary(mdl)$r.squared
+```
+
+*** =right
+```{r, echo=FALSE, fig.height=6, fig.width=6}
+suppressPackageStartupMessages(library(ggplot2))
+
+g <- ggplot(states, aes(x=Illiteracy, y=Life.Exp), height=100) + 
+    geom_point(color="red",
+               size=5,
+               alpha=.5) + 
+    ylab("Life Expectancy") +
+    xlab("Illiteracy") + 
+    ggtitle("Life Expectancy vs Illiteracy") +
+    geom_abline(intercept=coef(mdl)[1],
+                slope=coef(mdl)[2],
+                color="black",
+                size=2,
+                alpha=.5)
+g
+```
+
+
+--- &twocol
+
+## App Description - Prediction
+
+*** =fullwidth
+The Shiny app also allows a user to input a value for the variable on the x-axis and predict the outcome for the variable on the y-axis using the linear model.
+
+*** =left
+### Input Value for Illiteracy
+```{r, echo=FALSE}
+inputValue <- 2
+inputValue
+```
+### Predicted Value for Life Expectancy
+```{r, echo=FALSE}
+prediction <-
+    predict(mdl,
+            newdata=data.frame(Illiteracy=inputValue))
+prediction
+```
+
+*** =right
+```{r, echo=FALSE, fig.height=6, fig.width=6}
+suppressPackageStartupMessages(library(ggplot2))
+
+g <- ggplot(states, aes(x=Illiteracy, y=Life.Exp), height=100) + 
+    geom_point(color="red",
+               size=5,
+               alpha=.5) + 
+    ylab("Life Expectancy") +
+    xlab("Illiteracy") + 
+    ggtitle("Life Expectancy vs Illiteracy") +
+    geom_abline(intercept=coef(mdl)[1],
+                slope=coef(mdl)[2],
+                color="black",
+                size=2,
+                alpha=.5) +
+    geom_point(x=inputValue,
+               y=prediction,
+               color="black",
+               size=5)
+g
+```
